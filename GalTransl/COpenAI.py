@@ -12,6 +12,7 @@ from typing import Optional, Tuple
 from random import choice
 from asyncio import Queue
 from openai import OpenAI
+import re
 
 TRANSLATOR_ENGINE = {
     "gpt35": "gpt-3.5-turbo",
@@ -95,10 +96,8 @@ class COpenAITokenPool:
         self.tokens: list[tuple[bool, COpenAIToken]] = []
         for token in initGPTToken(config, eng_type):
             self.tokens.append((False, token))
-        if "gpt35" in eng_type:
-            section = config.getBackendConfigSection("GPT35")
-        elif "gpt4" in eng_type:
-            section = config.getBackendConfigSection("GPT4")
+
+        section = config.getBackendConfigSection("GPT4")
         self.force_eng_name = section.get("rewriteModelName", "")
 
     async def _isTokenAvailable(
@@ -109,7 +108,7 @@ class COpenAITokenPool:
         model_name = TRANSLATOR_ENGINE.get(eng_type, "gpt-3.5-turbo")
         if self.force_eng_name:
             model_name = self.force_eng_name
-        if not token.domain.endswith("/v1"):
+        if not token.domain.endswith("/v1") and not re.search(r"/v\d+$", token.domain):
             base_url = token.domain + "/v1"
         else:
             base_url = token.domain
