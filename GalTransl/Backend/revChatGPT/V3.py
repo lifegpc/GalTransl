@@ -290,6 +290,7 @@ class Chatbot:
 
             response_role: str = ""
             full_response: str = ""
+            thinking = -1
             async for line in response.aiter_lines():
                 line = line.strip()
                 if not line:
@@ -311,10 +312,18 @@ class Chatbot:
                     continue
                 if "role" in delta:
                     response_role = delta["role"]
-                if "content" in delta:
+                if "content" in delta and delta["content"]:
+                    if thinking == 0:
+                        yield "\n</think>\n"
+                        thinking = 1
                     content: str = delta["content"]
                     full_response += content
                     yield content
+                if "reasoning_content" in delta and delta["reasoning_content"]:
+                    if thinking != 0:
+                        yield "<think>\n"
+                        thinking = 0
+                    yield delta["reasoning_content"]
         if kwargs.get("assistant_prompt","")!= "":
             self.pop_conversation(convo_id=convo_id)
         

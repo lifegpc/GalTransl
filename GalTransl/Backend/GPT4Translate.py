@@ -20,6 +20,8 @@ from GalTransl.Backend.BaseTranslate import BaseTranslate
 from GalTransl.Backend.Prompts import (
     GPT4Turbo_SYSTEM_PROMPT,
     GPT4Turbo_TRANS_PROMPT,
+    GPT4Turbo_BGI_TRANS_PROMPT,
+    GPT4Turbo_KRKR_TRANS_PROMPT,
     GPT4Turbo_CONF_PROMPT,
     GPT4Turbo_PROOFREAD_PROMPT,
     GPT4_CONF_PROMPT,
@@ -120,6 +122,9 @@ class CGPT4Translate(BaseTranslate):
         else:
             self.proxyProvider = None
 
+        self.bgi = config.getKey("bgi")
+        self.krkr = config.getKey("krkr")
+
         self._current_temp_type = ""
 
         self.init_chatbot(eng_type=eng_type, config=config)  # 模型选择
@@ -152,6 +157,10 @@ class CGPT4Translate(BaseTranslate):
                 response_format="json",
             )
             self.chatbot.trans_prompt = GPT4Turbo_TRANS_PROMPT
+            if self.bgi:
+                self.chatbot.trans_prompt = GPT4Turbo_BGI_TRANS_PROMPT
+            if self.krkr:
+                self.chatbot.trans_prompt = GPT4Turbo_KRKR_TRANS_PROMPT
             self.chatbot.proofread_prompt = GPT4Turbo_PROOFREAD_PROMPT
             self.chatbot.update_proxy(
                 self.proxyProvider.getProxy().addr if self.proxyProvider else None
